@@ -2,8 +2,7 @@ import os
 import argparse
 from dotenv import load_dotenv
 from google import genai
-
-
+from google.genai import types
 
 def main():
     load_dotenv()
@@ -11,12 +10,12 @@ def main():
     if api_key is None:
         raise RuntimeError("Environment Variable wasn't found")
     client = genai.Client(api_key=api_key)
-    
+   
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("user_prompt", type=str, help="User prompt")
     args = parser.parse_args()
-
-    response = client.models.generate_content(model="gemini-3-flash-preview", contents=args.user_prompt)
+    messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=messages)
 
     if response.usage_metadata is None:
         raise RuntimeError("Failed API rqueest: no usage_metadata property")
