@@ -1,5 +1,7 @@
 import os
 import argparse
+from prompts import system_prompt
+
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -18,7 +20,11 @@ def main():
     user_prompt = args.user_prompt
     verbose = args.verbose
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=messages)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash", 
+        contents=messages,
+        config=types.GenerateContentConfig(system_instruction=system_prompt, temperature=0)
+        )
 
     if response.usage_metadata is None:
         raise RuntimeError("Failed API rqueest: no usage_metadata property")
