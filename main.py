@@ -1,10 +1,11 @@
 import os
 import argparse
+from functions.call_function import available_functions
 from prompts import system_prompt
-
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+
 
 def main():
     load_dotenv()
@@ -20,11 +21,7 @@ def main():
     user_prompt = args.user_prompt
     verbose = args.verbose
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
-    response = client.models.generate_content(
-        model="gemini-2.5-flash", 
-        contents=messages,
-        config=types.GenerateContentConfig(system_instruction=system_prompt, temperature=0)
-        )
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=messages, config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt, temperature=0))
 
     if response.usage_metadata is None:
         raise RuntimeError("Failed API rqueest: no usage_metadata property")
@@ -35,8 +32,18 @@ def main():
         print(f"User prompt: {user_prompt}")
         print(f"Prompt tokens: {prompt_token}")
         print(f"Response tokens: {response_token}")
-
-    print(response.text)
+    
+    #if response.text:
+    #    print(response.text)
+    
+    # Check the function_calls property
+    if response.function_calls:
+        calls = response.function_calls
+        for call in calls:
+            print(f"Calling function: {call.name}({call.args})")
+    else:
+        # Check for and print txt content
+        print(response.text)
 
 if __name__ == "__main__":
     main()
